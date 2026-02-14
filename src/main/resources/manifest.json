@@ -1,0 +1,20 @@
+{
+  "Group": "John",
+  "Name": "FixedExtendedChestRange",
+  "Version": "0.1",
+  "Description": "Increases the nearby chest search radius for crafting benches",
+  "Authors": [
+    {
+      "Name": "John"
+    }
+  ],
+  "Website": "",
+  "ServerVersion": "*",
+  "Dependencies": {
+    "Hytale:Crafting": "*"
+  },
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "Main": "com.john.chestrange.ExtendedChestRange",
+  "IncludesAssetPack": false
+}
