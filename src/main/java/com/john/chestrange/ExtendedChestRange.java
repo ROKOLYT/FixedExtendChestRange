@@ -23,7 +23,6 @@ public class ExtendedChestRange extends JavaPlugin {
     @Override
     protected void setup() {
         super.setup();
-        this.getLogger().at(Level.INFO).log("ExtendedChestRange starting...");
 
         extendedChestRangeCommand = new ExtendedChestRangeCommand("extendchestrange",
                 "Used to extend the range of chests for crafting benches",
@@ -34,6 +33,8 @@ public class ExtendedChestRange extends JavaPlugin {
     }
 
     protected void start() {
+        this.getLogger().at(Level.INFO).log("ExtendedChestRange starting...");
+
         try {
             loadConfig();
         } catch (Exception e) {

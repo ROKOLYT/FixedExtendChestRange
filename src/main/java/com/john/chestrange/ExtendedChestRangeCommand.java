@@ -21,7 +21,6 @@ import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.logging.Level;
 
 public class ExtendedChestRangeCommand extends AbstractPlayerCommand {
@@ -84,54 +83,26 @@ public class ExtendedChestRangeCommand extends AbstractPlayerCommand {
     private void modifyCraftingConfig() throws Exception {
         DefaultAssetMap<String, GameplayConfig> assetMap = GameplayConfig.getAssetMap();
         if (assetMap == null) {
-            logger.at(Level.WARNING).log("GameplayConfig asset map is null, trying alternative method...");
-            this.modifyDefaultConfig();
+            logger.at(Level.WARNING).log("GameplayConfig asset map is null, aborting...");
             return;
         }
 
-        Map<String, GameplayConfig> map = assetMap.getAssetMap();
-        if (map.isEmpty()) {
-            logger.at(Level.WARNING).log("Asset map is empty, trying default config...");
-            this.modifyDefaultConfig();
+        GameplayConfig firstConfig = assetMap.getAssetMap().values().iterator().next();
+        if (firstConfig == null) {
+            logger.at(Level.WARNING).log("First gameplay config is null, aborting...");
+            return;
         }
 
-        for (Map.Entry<String, GameplayConfig> entry : map.entrySet()) {
-            String configName = entry.getKey();
-            GameplayConfig gameplayConfig = entry.getValue();
-
-            if (gameplayConfig == null) {
-                continue;
-            }
-
-            CraftingConfig craftingConfig = gameplayConfig.getCraftingConfig();
-            if (craftingConfig == null) {
-                logger.at(Level.WARNING).log("CraftingConfig is null for: %s", configName);
-            } else {
-                this.modifyCraftingConfigInstance(craftingConfig, configName);
-            }
+        CraftingConfig sharedCraftingConfig = firstConfig.getCraftingConfig();
+        if (sharedCraftingConfig == null) {
+            logger.at(Level.WARNING).log("Crafting config is null, aborting...");
+            return;
         }
+
+        modifyCraftingConfigInstance(sharedCraftingConfig);
     }
 
-    private void modifyDefaultConfig() throws Exception {
-        Field defaultField = GameplayConfig.class.getDeclaredField("DEFAULT");
-        defaultField.setAccessible(true);
-
-        GameplayConfig defaultGameplay = (GameplayConfig) defaultField.get((Object) null);
-        if (defaultGameplay == null) {
-            logger.at(Level.WARNING).log("Default Gameplay Config is null, it's cooked.");
-            return;
-        }
-
-        CraftingConfig craftingConfig = defaultGameplay.getCraftingConfig();
-        if  (craftingConfig == null) {
-            logger.at(Level.WARNING).log("Default Crafting Config is null, it's cooked.");
-            return;
-        }
-
-        this.modifyCraftingConfigInstance(craftingConfig, "DEFAULT");
-    }
-
-    private void modifyCraftingConfigInstance(CraftingConfig craftingConfig, String configName) throws Exception {
+    private void modifyCraftingConfigInstance(CraftingConfig craftingConfig) throws Exception {
         Class<CraftingConfig> clazz = CraftingConfig.class;
         Field horizontalField = clazz.getDeclaredField("benchMaterialHorizontalChestSearchRadius");
         Field verticalField = clazz.getDeclaredField("benchMaterialVerticalChestSearchRadius");
@@ -145,7 +116,7 @@ public class ExtendedChestRangeCommand extends AbstractPlayerCommand {
         int oldV = verticalField.getInt(craftingConfig);
         int oldLimit = limitField.getInt(craftingConfig);
 
-        logger.at(Level.INFO).log("Config '%s' old values: H=%d, V=%d, Limit=%d", configName, oldH, oldV, oldLimit);
+        logger.at(Level.INFO).log("Config '%s' old values: H=%d, V=%d, Limit=%d", "Global Shared Instance", oldH, oldV, oldLimit);
 
         horizontalField.setInt(craftingConfig, horizontalRadiusInt);
         verticalField.setInt(craftingConfig, verticalRadiusInt);
@@ -155,7 +126,7 @@ public class ExtendedChestRangeCommand extends AbstractPlayerCommand {
         int newV = verticalField.getInt(craftingConfig);
         int newLimit = limitField.getInt(craftingConfig);
 
-        logger.at(Level.INFO).log("Config '%s' new values: H=%d, V=%d, Limit=%d", configName, newH, newV, newLimit);
+        logger.at(Level.INFO).log("Config '%s' new values: H=%d, V=%d, Limit=%d", "Global Shared Instance", newH, newV, newLimit);
     }
 
     public void initializeMod(ExtendedChestConfig chestConfig) throws Exception {
